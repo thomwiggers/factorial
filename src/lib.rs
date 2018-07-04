@@ -5,15 +5,17 @@
 //! They are not necessarily the fastest versions: there are prime sieve methods that
 //! compute the factorial in `O(n (log n loglog n)^2)`. Patches are welcome.
 
+#[cfg(test)]
+extern crate num_bigint;
 extern crate num_traits;
 
-use num_traits::{CheckedMul, Unsigned};
+use num_traits::{CheckedMul, Signed, Unsigned};
 use std::ops::RangeInclusive;
 
 /// Unary operator for computing the factorial of a number
 ///
 /// Implements checked and unchecked versions of the formula
-pub trait Factorial: Sized {
+pub trait Factorial<Target = Self> {
     /// Returns `self!`, i.e. the factorial of `self`,
     /// if it doesn't overflow the type `T`.
     ///
@@ -22,7 +24,7 @@ pub trait Factorial: Sized {
     /// use factorial::Factorial;
     /// assert_eq!(10u32.checked_factorial(), Some(3628800));
     /// ```
-    fn checked_factorial(self) -> Option<Self>;
+    fn checked_factorial(&self) -> Option<Target>;
 
     /// Returns `self!`, i.e. the factorial of `self`.
     ///
@@ -31,27 +33,33 @@ pub trait Factorial: Sized {
     /// use factorial::Factorial;
     /// assert_eq!(10u32.factorial(), 3628800);
     /// ```
-    fn factorial(self) -> Self {
+    fn factorial(&self) -> Target {
         self.checked_factorial()
             .expect("Overflow computing factorial")
     }
 }
 
-impl<T: Unsigned + CheckedMul> Factorial for T
-where
-    RangeInclusive<T>: IntoIterator<Item = T>,
-{
+impl<T: PartialOrd + Unsigned + CheckedMul> Factorial<T> for T {
     #[inline(always)]
-    fn checked_factorial(self) -> Option<T> {
-        (T::one()..=self)
-            .into_iter()
-            .try_fold(T::one(), |acc, i| acc.checked_mul(&i))
+    fn checked_factorial(&self) -> Option<T> {
+        let mut acc = T::one();
+        let mut i = T::one() + T::one();
+        while i <= *self {
+            if let Some(acc_i) = acc.checked_mul(&i) {
+                acc = acc_i;
+                i = i + T::one();
+            } else {
+                return None;
+            }
+        }
+        Some(acc)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::*;
 
     #[test]
     fn zero_fact_is_one() {
@@ -82,5 +90,13 @@ mod tests {
     #[test]
     fn too_large_safe() {
         assert_eq!(100u32.checked_factorial(), None)
+    }
+
+    #[test]
+    fn biguint_support() {
+        assert_eq!(
+            2u32.to_biguint().unwrap().factorial(),
+            2u32.to_biguint().unwrap()
+        );
     }
 }
