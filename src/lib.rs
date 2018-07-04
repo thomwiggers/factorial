@@ -1,5 +1,5 @@
 //! # Compute the factorial
-//! 
+//!
 //! This crate provides some convenient and safe methods to compute the factorial in O(n) time.
 //!
 //! They are not necessarily the fastest versions: there are prime sieve methods that
@@ -14,7 +14,6 @@ use std::ops::RangeInclusive;
 ///
 /// Implements checked and unchecked versions of the formula
 pub trait Factorial: Sized {
-
     /// Returns `self!`, i.e. the factorial of `self`,
     /// if it doesn't overflow the type `T`.
     ///
@@ -33,21 +32,22 @@ pub trait Factorial: Sized {
     /// assert_eq!(10u32.factorial(), 3628800);
     /// ```
     fn factorial(self) -> Self {
-        self.checked_factorial().expect("Overflow computing factorial")
+        self.checked_factorial()
+            .expect("Overflow computing factorial")
     }
 }
 
-impl<T: Unsigned + CheckedMul> Factorial for T 
-    where RangeInclusive<T>: IntoIterator<Item=T> {
-
+impl<T: Unsigned + CheckedMul> Factorial for T
+where
+    RangeInclusive<T>: IntoIterator<Item = T>,
+{
     #[inline(always)]
-    fn checked_factorial(self) -> Option<T> 
-    {
-        (T::one()..=self).into_iter().try_fold(T::one(), |acc, i| acc.checked_mul(&i))
+    fn checked_factorial(self) -> Option<T> {
+        (T::one()..=self)
+            .into_iter()
+            .try_fold(T::one(), |acc, i| acc.checked_mul(&i))
     }
-    
 }
-
 
 #[cfg(test)]
 mod tests {
