@@ -9,8 +9,7 @@
 extern crate num_bigint;
 extern crate num_traits;
 
-use num_traits::{CheckedMul, Signed, Unsigned};
-use std::ops::RangeInclusive;
+use num_traits::{CheckedMul, Unsigned};
 
 /// Unary operator for computing the factorial of a number
 ///
