@@ -97,5 +97,9 @@ mod tests {
             2u32.to_biguint().unwrap().factorial(),
             2u32.to_biguint().unwrap()
         );
+        assert_eq!(
+            2u32.to_biguint().unwrap().checked_factorial(),
+            Some(2u32.to_biguint().unwrap())
+        );
     }
 }
