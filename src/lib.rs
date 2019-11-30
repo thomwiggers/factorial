@@ -10,7 +10,7 @@
 extern crate num_bigint;
 extern crate num_traits;
 
-use num_traits::{CheckedMul, Unsigned};
+use num_traits::{CheckedMul, Signed, Unsigned};
 
 /// Unary operator for computing the factorial of a number
 ///
@@ -43,6 +43,15 @@ pub trait Factorial<Target = Self> {
 ///
 /// Implements checked and unchecked versions of the formula
 pub trait DoubleFactorial<Target = Self> {
+    fn checked_double_factorial(&self) -> Option<Target>;
+
+    fn double_factorial(&self) -> Target {
+        self.checked_double_factorial()
+            .expect("Overflow computing double factorial")
+    }
+}
+
+pub trait SignedDoubleFactorial<Target = Self> {
     fn checked_double_factorial(&self) -> Option<Target>;
 
     fn double_factorial(&self) -> Target {
@@ -84,6 +93,33 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
             }
         }
         Some(acc)
+    }
+}
+
+impl<T: PartialOrd + Signed + CheckedMul + Clone> SignedDoubleFactorial<T> for T {
+    #[inline(always)]
+    fn checked_double_factorial(&self) -> Option<T> {
+        if *self < T::zero() {
+            if let Some(numerator) =
+                ((*self).clone() + T::one() + T::one()).checked_double_factorial()
+            {
+                Some(numerator / (*self).clone() + T::one() + T::one())
+            } else {
+                None
+            }
+        } else {
+            let mut acc = T::one();
+            let mut i = T::one() + T::one();
+            while i <= *self {
+                if let Some(acc_i) = acc.checked_mul(&i) {
+                    acc = acc_i;
+                    i = i + T::one() + T::one();
+                } else {
+                    return None;
+                }
+            }
+            Some(acc)
+        }
     }
 }
 
@@ -137,17 +173,17 @@ mod tests {
 
     #[test]
     fn zero_double_fact_is_one() {
-        assert_eq!(0.double_factorial(), 1u32)
+        assert_eq!(0u32.double_factorial(), 1u32)
     }
 
     #[test]
     fn one_double_fact_is_two() {
-        assert_eq!(1.double_factorial(), 1u32)
+        assert_eq!(1u32.double_factorial(), 1u32)
     }
 
     #[test]
     fn two_double_fact_is_two() {
-        assert_eq!(2.double_factorial(), 2u32)
+        assert_eq!(2u32.double_factorial(), 2u32)
     }
 
     #[test]
@@ -170,4 +206,17 @@ mod tests {
     fn too_large_safe_double_fact() {
         assert_eq!(100u32.checked_double_factorial(), None)
     }
+
+    #[test]
+    fn negative_one_double_fact_is_one() {
+        assert_eq!((-1i32).double_factorial(), 1i32)
+    }
+
+    #[test]
+    fn negative_three_double_fact_is_() {
+        assert_eq!((-3i32).double_factorial(), -1i32)
+    }
+
+    #[test]
+    fn negative_five_double_fact_is_() {}
 }
