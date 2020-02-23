@@ -112,10 +112,9 @@ where
             }
             // Calculate the answer directly.
             let n = (*self + T::one()) / two;
-            let n_64: f64 = f64::from(n);
-            let n_plus_half = n_64 + 0.5;
             Some(
-                two.powf(n) * T::from_f64(rgsl::gamma_beta::gamma::gamma(n_plus_half)).unwrap()
+                two.powf(n)
+                    * T::from_f64(rgsl::gamma_beta::gamma::gamma(f64::from(n) + 0.5f64)).unwrap()
                     / T::PI().powf(T::from_f32(0.5).unwrap()),
             )
         } else {
