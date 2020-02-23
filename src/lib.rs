@@ -7,6 +7,9 @@
 //! compute the factorial in `O(n (log n loglog n)^2)`. Patches are welcome.
 
 #[cfg(test)]
+#[macro_use]
+extern crate approx;
+#[cfg(test)]
 extern crate num_bigint;
 
 use num_traits::{CheckedMul, Float, FloatConst, FromPrimitive, Unsigned};
@@ -160,7 +163,7 @@ mod tests {
 
     #[test]
     fn too_large_safe() {
-        assert_eq!(100u32.checked_factorial(), None)
+        assert_eq!(100u32.checked_factorial(), None);
     }
 
     #[test]
@@ -177,17 +180,17 @@ mod tests {
 
     #[test]
     fn zero_double_fact_is_one() {
-        assert_eq!(0u32.double_factorial(), 1u32)
+        assert_eq!(0u32.double_factorial(), 1u32);
     }
 
     #[test]
     fn one_double_fact_is_two() {
-        assert_eq!(1u32.double_factorial(), 1u32)
+        assert_eq!(1u32.double_factorial(), 1u32);
     }
 
     #[test]
     fn two_double_fact_is_two() {
-        assert_eq!(2u32.double_factorial(), 2u32)
+        assert_eq!(2u32.double_factorial(), 2u32);
     }
 
     #[test]
@@ -208,35 +211,35 @@ mod tests {
 
     #[test]
     fn too_large_safe_double_fact() {
-        assert_eq!(100u32.checked_double_factorial(), None)
+        assert_eq!(100u32.checked_double_factorial(), None);
     }
 
     #[test]
     fn negative_one_double_fact_is_one() {
-        assert_eq!((-1.0_f32).double_factorial(), 1.0_f32);
-        assert_eq!((-1.0_f64).double_factorial(), 1.0_f64);
+        assert_abs_diff_eq!((-1f32).double_factorial(), 1f32);
+        assert_abs_diff_eq!((-1f64).double_factorial(), 1f64);
     }
 
     #[test]
     fn negative_three_double_fact_is_negative_one() {
-        assert_eq!((-3.0_f32).double_factorial(), -1.0_f32);
-        assert_eq!((-3.0_f64).double_factorial(), -1.0_f64);
+        assert_abs_diff_eq!((-3f32).double_factorial(), -1f32);
+        assert_abs_diff_eq!((-3f64).double_factorial(), -1f64, epsilon = 1.0e-15);
     }
 
     #[test]
     fn negative_five_double_fact_is_one_third() {
-        assert_eq!((-5.0_f32).double_factorial(), (1.0 / 3.0));
-        assert_eq!((-5.0_f64).double_factorial(), (1.0 / 3.0));
+        assert_abs_diff_eq!((-5f32).double_factorial(), (1.0 / 3.0));
+        assert_abs_diff_eq!((-5f64).double_factorial(), (1.0 / 3.0), epsilon = 1.0e-15);
     }
 
     #[test]
     fn negative_nineteen_double_fact() {
-        assert_eq!((-19_f32).double_factorial(), (-1.0 / 34459425.0));
+        assert_abs_diff_eq!((-19f32).double_factorial(), (-1.0 / 34_459_425.0));
     }
 
     #[test]
     #[should_panic(expected = "Overflow computing double factorial")]
     fn negative_even_double_fact_is_undefined() {
-        (-2.0_f32).double_factorial();
+        (-2f32).double_factorial();
     }
 }
