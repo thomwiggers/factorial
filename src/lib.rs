@@ -8,8 +8,6 @@
 
 #[cfg(test)]
 extern crate num_bigint;
-extern crate num_traits;
-extern crate rgsl;
 
 use num_traits::{CheckedMul, Float, FloatConst, FromPrimitive, Unsigned};
 
@@ -105,6 +103,7 @@ where
     fn checked_double_factorial(&self) -> Option<T> {
         let two = T::one() + T::one();
         if *self < T::zero() {
+            // The double factorial of a negative even argument is undefined
             if *self % two == T::zero() {
                 return None;
             }
