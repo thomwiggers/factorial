@@ -9,8 +9,9 @@
 #[cfg(test)]
 extern crate num_bigint;
 extern crate num_traits;
+extern crate rgsl;
 
-use num_traits::{CheckedMul, Signed, Unsigned};
+use num_traits::{CheckedMul, Float, FloatConst, FromPrimitive, Unsigned};
 
 /// Unary operator for computing the factorial of a number
 ///
@@ -96,27 +97,31 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
     }
 }
 
-impl<T: PartialOrd + Signed + CheckedMul + Clone> SignedDoubleFactorial<T> for T {
+impl<T: Float + FloatConst + FromPrimitive> SignedDoubleFactorial<T> for T
+where
+    f64: From<T>,
+{
     #[inline(always)]
     fn checked_double_factorial(&self) -> Option<T> {
+        let two = T::one() + T::one();
         if *self < T::zero() {
-            if let Some(numerator) =
-                ((*self).clone() + T::one() + T::one()).checked_double_factorial()
-            {
-                Some(numerator / (*self).clone() + T::one() + T::one())
-            } else {
-                None
+            if *self % two == T::zero() {
+                return None;
             }
+            // Calculate the answer directly.
+            let n = (*self + T::one()) / two;
+            let n_64: f64 = f64::from(n);
+            let n_plus_half = n_64 + 0.5;
+            Some(
+                two.powf(n) * T::from_f64(rgsl::gamma_beta::gamma::gamma(n_plus_half)).unwrap()
+                    / T::PI().powf(T::from_f32(0.5).unwrap()),
+            )
         } else {
             let mut acc = T::one();
-            let mut i = T::one() + T::one();
+            let mut i = two;
             while i <= *self {
-                if let Some(acc_i) = acc.checked_mul(&i) {
-                    acc = acc_i;
-                    i = i + T::one() + T::one();
-                } else {
-                    return None;
-                }
+                acc = acc * i;
+                i = i + two;
             }
             Some(acc)
         }
@@ -209,14 +214,30 @@ mod tests {
 
     #[test]
     fn negative_one_double_fact_is_one() {
-        assert_eq!((-1i32).double_factorial(), 1i32)
+        assert_eq!((-1.0_f32).double_factorial(), 1.0_f32);
+        assert_eq!((-1.0_f64).double_factorial(), 1.0_f64);
     }
 
     #[test]
-    fn negative_three_double_fact_is_() {
-        assert_eq!((-3i32).double_factorial(), -1i32)
+    fn negative_three_double_fact_is_negative_one() {
+        assert_eq!((-3.0_f32).double_factorial(), -1.0_f32);
+        assert_eq!((-3.0_f64).double_factorial(), -1.0_f64);
     }
 
     #[test]
-    fn negative_five_double_fact_is_() {}
+    fn negative_five_double_fact_is_one_third() {
+        assert_eq!((-5.0_f32).double_factorial(), (1.0 / 3.0));
+        assert_eq!((-5.0_f64).double_factorial(), (1.0 / 3.0));
+    }
+
+    #[test]
+    fn negative_nineteen_double_fact() {
+        assert_eq!((-19_f32).double_factorial(), (-1.0 / 34459425.0));
+    }
+
+    #[test]
+    #[should_panic(expected = "Overflow computing double factorial")]
+    fn negative_even_double_fact_is_undefined() {
+        (-2.0_f32).double_factorial();
+    }
 }

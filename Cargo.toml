@@ -19,3 +19,4 @@ num-bigint = "0.3"
 
 [dependencies]
 num-traits = "0.2"
+GSL = "1.1"
