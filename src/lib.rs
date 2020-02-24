@@ -53,7 +53,7 @@ pub trait DoubleFactorial<Target = Self> {
     }
 }
 
-pub trait SignedDoubleFactorial<Target = Self> {
+pub trait FloatDoubleFactorial<Target = Self> {
     fn checked_double_factorial(&self) -> Option<Target>;
 
     fn double_factorial(&self) -> Target {
@@ -98,7 +98,7 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
     }
 }
 
-impl<T: Float + FloatConst + FromPrimitive> SignedDoubleFactorial<T> for T
+impl<T: Float + FloatConst + FromPrimitive> FloatDoubleFactorial<T> for T
 where
     f64: From<T>,
 {
