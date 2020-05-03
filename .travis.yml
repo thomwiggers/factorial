@@ -5,7 +5,9 @@ rust:
   - stable
   - beta
   - nightly
-
+env:
+  - FEATURE_FLAG=''
+  - FEATURE_FLAG='--features gsl'
 addons:
   apt:
     packages:
@@ -16,8 +18,8 @@ before_script:
 
 script:
   - "[ '$TRAVIS_RUST_VERSION' != 'nightly' ] || cargo fmt --all -- --check"
-  - cargo build --all
-  - cargo test --all
+  - cargo build --all $FEATURE_FLAG
+  - cargo test --all $FEATURE_FLAG
 
 cache: cargo
 
