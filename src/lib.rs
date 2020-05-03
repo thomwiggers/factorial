@@ -166,7 +166,7 @@ where
             if *self % two == zero {
                 None
             } else {
-                Some(negative_odd_double_factorial(*self))
+                Some(*self * (-one).powf((*self - one) / two) / (-*self).double_factorial())
             }
         } else {
             let mut acc = T::one();
@@ -178,13 +178,6 @@ where
             Some(acc)
         }
     }
-}
-
-fn negative_odd_double_factorial<T: Float + FloatDoubleFactorial>(n: T) -> T {
-    assert!(n < T::zero());
-    let one = T::one();
-    let two = one + one;
-    n * (-one).powf((n - one) / two) / (-n).double_factorial()
 }
 
 #[cfg(test)]
@@ -306,39 +299,24 @@ mod tests {
 
     #[test]
     fn negative_one_double_fact_is_one() {
-        assert_abs_diff_eq!(negative_odd_double_factorial(-1f32), 1f32);
-        assert_abs_diff_eq!(negative_odd_double_factorial(-1f64), 1f64);
         assert_abs_diff_eq!((-1f32).double_factorial(), 1f32);
         assert_abs_diff_eq!((-1f64).double_factorial(), 1f64);
     }
 
     #[test]
     fn negative_three_double_fact_is_negative_one() {
-        assert_abs_diff_eq!(negative_odd_double_factorial(-3f32), -1f32);
-        assert_abs_diff_eq!(
-            negative_odd_double_factorial(-3f64),
-            -1f64,
-            epsilon = 1.0e-15
-        );
         assert_abs_diff_eq!((-3f32).double_factorial(), -1f32);
         assert_abs_diff_eq!((-3f64).double_factorial(), -1f64, epsilon = 1.0e-15);
     }
 
     #[test]
     fn negative_five_double_fact_is_one_third() {
-        assert_abs_diff_eq!(negative_odd_double_factorial(-5f32), (1.0 / 3.0));
-        assert_abs_diff_eq!(
-            negative_odd_double_factorial(-5f64),
-            (1.0 / 3.0),
-            epsilon = 1.0e-15
-        );
         assert_abs_diff_eq!((-5f32).double_factorial(), (1.0 / 3.0));
         assert_abs_diff_eq!((-5f64).double_factorial(), (1.0 / 3.0), epsilon = 1.0e-15);
     }
 
     #[test]
     fn negative_nineteen_double_fact() {
-        assert_abs_diff_eq!(negative_odd_double_factorial(-19f32), (-1.0 / 34_459_425.0));
         assert_abs_diff_eq!((-19f32).double_factorial(), (-1.0 / 34_459_425.0));
     }
 
