@@ -14,13 +14,9 @@ license = "MIT"
 travis-ci = { repository = "thomwiggers/factorial" }
 maintenance = { status = "passively-maintained" }
 
-[features]
-gsl = ["GSL"]
-
 [dev-dependencies]
 approx = "0.3"
 num-bigint = "0.3"
 
 [dependencies]
 num-traits = "0.2"
-GSL = { version = "1.1", optional = true }

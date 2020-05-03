@@ -11,8 +11,6 @@
 extern crate approx;
 #[cfg(test)]
 extern crate num_bigint;
-#[cfg(feature = "gsl")]
-extern crate rgsl;
 
 use num_traits::{CheckedMul, Float, FloatConst, FromPrimitive, Signed, Unsigned};
 
@@ -182,19 +180,6 @@ where
     }
 }
 
-#[cfg(feature = "gsl")]
-fn negative_odd_double_factorial<T: Float + FloatConst + FromPrimitive>(n: T) -> T
-where
-    f64: From<T>,
-{
-    let one = T::one();
-    let two = one + one;
-    let n = (n + one) / two;
-    two.powf(n) * T::from_f64(rgsl::gamma_beta::gamma::gamma(f64::from(n) + 0.5f64)).unwrap()
-        / T::PI().powf(T::from_f32(0.5).unwrap())
-}
-
-#[cfg(not(feature = "gsl"))]
 fn negative_odd_double_factorial<T: Float + FloatDoubleFactorial>(n: T) -> T {
     assert!(n < T::zero());
     let one = T::one();
