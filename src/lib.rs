@@ -136,10 +136,14 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
 impl<T: PartialOrd + Signed + CheckedMul + Copy> SignedDoubleFactorial<T> for T {
     #[inline(always)]
     fn checked_double_factorial(&self) -> Option<T> {
+        let zero = T::zero();
+        if *self < zero {
+            return None;
+        }
         let one = T::one();
         let two = one + one;
         let mut acc = one;
-        let mut i = if *self % two == T::zero() { two } else { one };
+        let mut i = if *self % two == zero { two } else { one };
         while i <= *self {
             if let Some(acc_i) = acc.checked_mul(&i) {
                 acc = acc_i;
@@ -301,18 +305,33 @@ mod tests {
     fn negative_one_double_fact_is_one() {
         assert_abs_diff_eq!((-1f32).double_factorial(), 1f32);
         assert_abs_diff_eq!((-1f64).double_factorial(), 1f64);
+        // This is representable with the input type, but we choose not to.
+        assert_eq!((-1i32).checked_double_factorial(), None);
     }
 
     #[test]
     fn negative_three_double_fact_is_negative_one() {
         assert_abs_diff_eq!((-3f32).double_factorial(), -1f32);
         assert_abs_diff_eq!((-3f64).double_factorial(), -1f64, epsilon = 1.0e-15);
+        // This is representable with the input type, but we choose not to.
+        assert_eq!((-3i32).checked_double_factorial(), None);
+    }
+
+    #[test]
+    fn negative_even_double_factorials_are_undefined() {
+        assert_eq!((-4i32).checked_double_factorial(), None);
+        assert_eq!((-2f32).checked_double_factorial(), None);
+        assert_eq!((-4f32).checked_double_factorial(), None);
+        assert_eq!((-6f32).checked_double_factorial(), None);
     }
 
     #[test]
     fn negative_five_double_fact_is_one_third() {
         assert_abs_diff_eq!((-5f32).double_factorial(), (1.0 / 3.0));
         assert_abs_diff_eq!((-5f64).double_factorial(), (1.0 / 3.0), epsilon = 1.0e-15);
+        // We can no longer represent the output with the same type as the
+        // input.
+        assert_eq!((-5i32).checked_double_factorial(), None);
     }
 
     #[test]
