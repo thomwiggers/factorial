@@ -14,16 +14,24 @@ extern crate num_bigint;
 
 use num_traits::{CheckedMul, Float, FloatConst, Signed, Unsigned};
 
+/// Unary operator for computing the factorial of a number (supertrait)
+pub trait Factorial<Target = Self>: UnsignedFactorial<Target> + SignedFactorial<Target> {}
+/// Unary operator for computing the double factorial of a number (supertrait)
+pub trait DoubleFactorial<Target = Self>:
+    UnsignedDoubleFactorial<Target> + SignedDoubleFactorial<Target> + FloatDoubleFactorial<Target>
+{
+}
+
 /// Unary operator for computing the factorial of an unsigned integer
 ///
 /// Implements checked and unchecked versions of the formula
-pub trait Factorial<Target = Self> {
+pub trait UnsignedFactorial<Target = Self> {
     /// Returns `self!`, i.e. the factorial of `self`,
     /// if it doesn't overflow the type `T`.
     ///
     /// # Examples
     /// ```
-    /// use factorial::Factorial;
+    /// use factorial::UnsignedFactorial;
     /// assert_eq!(10u32.checked_factorial(), Some(3628800));
     /// ```
     fn checked_factorial(&self) -> Option<Target>;
@@ -32,7 +40,7 @@ pub trait Factorial<Target = Self> {
     ///
     /// # Examples
     /// ```
-    /// use factorial::Factorial;
+    /// use factorial::UnsignedFactorial;
     /// assert_eq!(10u32.factorial(), 3628800);
     /// ```
     fn factorial(&self) -> Target {
@@ -71,13 +79,13 @@ pub trait SignedFactorial<Target = Self> {
 /// Unary operator for computing the double factorial of an unsigned integer
 ///
 /// Implements checked and unchecked versions of the formula
-pub trait DoubleFactorial<Target = Self> {
+pub trait UnsignedDoubleFactorial<Target = Self> {
     /// Returns `self!!`, i.e. the double factorial of `self`,
     /// if it doesn't overflow the type `T`.
     ///
     /// # Examples
     /// ```
-    /// use factorial::DoubleFactorial;
+    /// use factorial::UnsignedDoubleFactorial;
     /// assert_eq!(10u32.checked_double_factorial(), Some(3840));
     /// ```
     fn checked_double_factorial(&self) -> Option<Target>;
@@ -86,7 +94,7 @@ pub trait DoubleFactorial<Target = Self> {
     ///
     /// # Examples
     /// ```
-    /// use factorial::DoubleFactorial;
+    /// use factorial::UnsignedDoubleFactorial;
     /// assert_eq!(10u32.double_factorial(), 3840);
     /// ```
     fn double_factorial(&self) -> Target {
@@ -149,7 +157,7 @@ pub trait FloatDoubleFactorial<Target = Self> {
     }
 }
 
-impl<T: PartialOrd + Unsigned + CheckedMul> Factorial<T> for T {
+impl<T: PartialOrd + Unsigned + CheckedMul> UnsignedFactorial<T> for T {
     #[inline(always)]
     fn checked_factorial(&self) -> Option<T> {
         let mut acc = T::one();
@@ -183,7 +191,7 @@ impl<T: PartialOrd + Signed + CheckedMul> SignedFactorial<T> for T {
     }
 }
 
-impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
+impl<T: PartialOrd + Unsigned + CheckedMul + Copy> UnsignedDoubleFactorial<T> for T {
     #[inline(always)]
     fn checked_double_factorial(&self) -> Option<T> {
         let one = T::one();
