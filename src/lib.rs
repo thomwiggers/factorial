@@ -12,7 +12,7 @@ extern crate approx;
 #[cfg(test)]
 extern crate num_bigint;
 
-use num_traits::{CheckedMul, Float, FloatConst, FromPrimitive, Signed, Unsigned};
+use num_traits::{CheckedMul, Float, FloatConst, Signed, Unsigned};
 
 /// Unary operator for computing the factorial of a number
 ///
@@ -156,10 +156,7 @@ impl<T: PartialOrd + Signed + CheckedMul + Copy> SignedDoubleFactorial<T> for T 
     }
 }
 
-impl<T: Float + FloatConst + FromPrimitive> FloatDoubleFactorial<T> for T
-where
-    f64: From<T>,
-{
+impl<T: Float + FloatConst> FloatDoubleFactorial<T> for T {
     #[inline(always)]
     fn checked_double_factorial(&self) -> Option<T> {
         let zero = T::zero();
