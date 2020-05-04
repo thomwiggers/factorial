@@ -14,7 +14,7 @@ extern crate num_bigint;
 
 use num_traits::{CheckedMul, Float, FloatConst, Signed, Unsigned};
 
-/// Unary operator for computing the factorial of a number
+/// Unary operator for computing the factorial of an unsigned integer
 ///
 /// Implements checked and unchecked versions of the formula
 pub trait Factorial<Target = Self> {
@@ -41,39 +41,108 @@ pub trait Factorial<Target = Self> {
     }
 }
 
+/// Unary operator for computing the factorial of a signed integer
+///
+/// Implements checked and unchecked versions of the formula
 pub trait SignedFactorial<Target = Self> {
+    /// Returns `self!`, i.e. the factorial of `self`,
+    /// if it doesn't overflow the type `T`.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::SignedFactorial;
+    /// assert_eq!(10i32.checked_factorial(), Some(3628800));
+    /// ```
     fn checked_factorial(&self) -> Option<Target>;
 
+    /// Returns `self!`, i.e. the factorial of `self`.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::SignedFactorial;
+    /// assert_eq!(10i32.factorial(), 3628800);
+    /// ```
     fn factorial(&self) -> Target {
         self.checked_factorial()
             .expect("Overflow computing factorial")
     }
 }
 
-/// Unary operator for computing the double factorial of a number
+/// Unary operator for computing the double factorial of an unsigned integer
 ///
 /// Implements checked and unchecked versions of the formula
 pub trait DoubleFactorial<Target = Self> {
+    /// Returns `self!!`, i.e. the double factorial of `self`,
+    /// if it doesn't overflow the type `T`.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::DoubleFactorial;
+    /// assert_eq!(10u32.checked_double_factorial(), Some(3840));
+    /// ```
     fn checked_double_factorial(&self) -> Option<Target>;
 
+    /// Returns `self!!`, i.e. the double factorial of `self`.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::DoubleFactorial;
+    /// assert_eq!(10u32.double_factorial(), 3840);
+    /// ```
     fn double_factorial(&self) -> Target {
         self.checked_double_factorial()
             .expect("Overflow computing double factorial")
     }
 }
 
+/// Unary operator for computing the double factorial of a signed integer
+///
+/// Implements checked and unchecked versions of the formula
 pub trait SignedDoubleFactorial<Target = Self> {
+    /// Returns `self!!`, i.e. the double factorial of `self`,
+    /// if it doesn't overflow the type `T`.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::SignedDoubleFactorial;
+    /// assert_eq!(10i32.checked_double_factorial(), Some(3840));
+    /// ```
     fn checked_double_factorial(&self) -> Option<Target>;
 
+    /// Returns `self!!`, i.e. the double factorial of `self`.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::SignedDoubleFactorial;
+    /// assert_eq!(10i32.double_factorial(), 3840);
+    /// ```
     fn double_factorial(&self) -> Target {
         self.checked_double_factorial()
             .expect("Overflow computing double factorial")
     }
 }
 
+/// Unary operator for computing the double factorial of a floating-point number
+///
+/// Implements checked and unchecked versions of the formula
 pub trait FloatDoubleFactorial<Target = Self> {
+    /// Returns `self!!`, i.e. the double factorial of `self`,
+    /// if it doesn't overflow the type `T`.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::FloatDoubleFactorial;
+    /// assert_eq!((-5f32).checked_double_factorial(), Some(1.0 / 3.0));
+    /// ```
     fn checked_double_factorial(&self) -> Option<Target>;
 
+    /// Returns `self!!`, i.e. the double factorial of `self`.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::FloatDoubleFactorial;
+    /// assert_eq!((-5f32).double_factorial(), 1.0 / 3.0);
+    /// ```
     fn double_factorial(&self) -> Target {
         self.checked_double_factorial()
             .expect("Overflow computing double factorial")
