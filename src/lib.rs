@@ -177,6 +177,11 @@ impl<T: PartialOrd + Unsigned + CheckedMul> UnsignedFactorial<T> for T {
 impl<T: PartialOrd + Signed + CheckedMul> SignedFactorial<T> for T {
     #[inline(always)]
     fn checked_factorial(&self) -> Option<T> {
+        // The regular factorial is undefined for negative arguments.
+        let zero = T::zero();
+        if *self < zero {
+            return None;
+        }
         let mut acc = T::one();
         let mut i = T::one() + T::one();
         while i <= *self {
@@ -213,6 +218,8 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Copy> UnsignedDoubleFactorial<T> fo
 impl<T: PartialOrd + Signed + CheckedMul + Copy> SignedDoubleFactorial<T> for T {
     #[inline(always)]
     fn checked_double_factorial(&self) -> Option<T> {
+        // Negative one and negative three double factorial are representable
+        // as signed integers, but we choose not to.
         let zero = T::zero();
         if *self < zero {
             return None;
@@ -307,6 +314,12 @@ mod tests {
             2u32.to_biguint().unwrap().checked_factorial(),
             Some(2u32.to_biguint().unwrap())
         );
+    }
+
+    #[test]
+    #[should_panic(expected = "Overflow computing factorial")]
+    fn negative_fact_not_defined() {
+        (-1i32).factorial();
     }
 
     #[test]
