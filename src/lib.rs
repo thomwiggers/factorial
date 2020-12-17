@@ -68,15 +68,17 @@ impl<T: PartialOrd + Unsigned + CheckedMul> Factorial<T> for T {
     }
 }
 
-impl<T: PartialOrd + Unsigned + CheckedMul> DoubleFactorial<T> for T {
+impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
     #[inline(always)]
     fn checked_double_factorial(&self) -> Option<T> {
-        let mut acc = T::one();
-        let mut i = T::one() + T::one();
+        let one = T::one();
+        let two = one + one;
+        let mut acc = one;
+        let mut i = if *self % two == T::zero() { two } else { one };
         while i <= *self {
             if let Some(acc_i) = acc.checked_mul(&i) {
                 acc = acc_i;
-                i = i + T::one() + T::one();
+                i = i + two;
             } else {
                 return None;
             }
@@ -151,6 +153,11 @@ mod tests {
     #[test]
     fn ten_double_fact() {
         assert_eq!(10u32.double_factorial(), 3840u32);
+    }
+
+    #[test]
+    fn seven_double_fact() {
+        assert_eq!(7u32.double_factorial(), 105u32);
     }
 
     #[test]

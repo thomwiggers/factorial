@@ -1,3 +1,8 @@
+== 0.2.1 ===
+
+* Fix double factorial for odd numbers (See #6) via the implementation from #5
+
+
 === 0.2.0 ====
 
 * Implement double factorial (naively) (See #2 by @berquist)
