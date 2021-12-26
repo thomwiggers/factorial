@@ -125,6 +125,16 @@ pub trait SignedDoubleFactorial<Target = Self> {
 /// Unary operator for computing the double factorial of a floating-point number
 ///
 /// Implements checked and unchecked versions of the formula
+///
+/// The double factorial can be extended to negative integer arguments,
+/// resulting in non-integer values, based on the relation
+///
+/// \\[ (-n)!! \times n!! = (-1)^{\frac{n - 1}{2}} \times n \\]
+///
+/// The current implementation cannot accept continuous arguments where the
+/// fractional part is non-zero.  See
+/// https://en.wikipedia.org/wiki/Double_factorial#Negative_arguments for more
+/// information.
 pub trait FloatDoubleFactorial<Target = Self> {
     /// Returns `self!!`, i.e. the double factorial of `self`,
     /// if it doesn't overflow the type `T`.
@@ -236,6 +246,9 @@ impl<T: Float + FloatConst> FloatDoubleFactorial<T> for T {
     #[inline(always)]
     fn checked_double_factorial(&self) -> Option<T> {
         let zero = T::zero();
+        if (*self).fract() != zero {
+            return None;
+        }
         let one = T::one();
         let two = one + one;
         if *self < zero {
@@ -283,6 +296,7 @@ mod tests {
     #[test]
     fn ten_fact() {
         assert_eq!(10u32.factorial(), 3_628_800);
+        assert_eq!(10i64.factorial(), 3_628_800);
     }
 
     #[test]
@@ -422,5 +436,11 @@ mod tests {
     #[should_panic(expected = "Overflow computing double factorial")]
     fn negative_even_double_fact_is_undefined() {
         (-2f32).double_factorial();
+    }
+
+    #[test]
+    #[should_panic(expected = "Overflow computing double factorial")]
+    fn fractional_double_factorial_is_undefined() {
+        (3.4).double_factorial();
     }
 }
