@@ -14,14 +14,6 @@ extern crate num_bigint;
 
 use num_traits::{CheckedMul, Float, FloatConst, Signed, Unsigned};
 
-/// Unary operator for computing the factorial of a number (supertrait)
-pub trait Factorial<Target = Self>: UnsignedFactorial<Target> + SignedFactorial<Target> {}
-/// Unary operator for computing the double factorial of a number (supertrait)
-pub trait DoubleFactorial<Target = Self>:
-    UnsignedDoubleFactorial<Target> + SignedDoubleFactorial<Target> + FloatDoubleFactorial<Target>
-{
-}
-
 /// Unary operator for computing the factorial of an unsigned integer
 ///
 /// Implements checked and unchecked versions of the formula
