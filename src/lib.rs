@@ -46,7 +46,10 @@ pub trait Factorial<Target = Self> {
     /// # Examples
     /// ```
     /// use factorial::Factorial;
-    /// assert_eq!(10u32.factorial(), 3628800);
+    /// use primal_sieve::Sieve;
+    /// let number = 10_usize;
+    /// let sieve = Sieve::new(number);
+    /// assert_eq!(10_usize.factorial(), 3628800);
     /// ```
     fn psw_factorial(&self, sieve: &Sieve) -> Target;
 }
