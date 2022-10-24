@@ -16,6 +16,11 @@ maintenance = { status = "passively-maintained" }
 
 [dev-dependencies]
 num-bigint = "0.3"
+criterion = "0.4"
+
+[[bench]]
+name = "benchmark"
+harness = false
 
 [dependencies]
 num-traits = "0.2"

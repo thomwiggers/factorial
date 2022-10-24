@@ -66,19 +66,13 @@ pub trait DoubleFactorial<Target = Self> {
     }
 }
 
-impl<
-        T: PartialOrd
-            + Unsigned
-            + CheckedMul
-            + Clone
-            + FromPrimitive
-            + ToPrimitive,
-    > Factorial<T> for T
+impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive> Factorial<T>
+    for T
 {
     #[inline(always)]
     fn checked_factorial(&self) -> Option<T> {
         let mut acc = T::one();
-        let mut i = T::one() + T::one();
+        let mut i = T::from_usize(2).unwrap();
         while i <= *self {
             if let Some(acc_i) = acc.checked_mul(&i) {
                 acc = acc_i;
@@ -92,16 +86,17 @@ impl<
 
     fn prime_swing(n: T, sieve: &Sieve) -> T {
         let mut product = T::one();
+        let two = T::from_usize(2).unwrap();
         for prime in sieve
             .primes_from(2)
-            .take_while(|x| *x <= n.clone().to_usize().unwrap())
+            .take_while(|x| *x < n.to_usize().unwrap())
         {
             let mut p = T::one();
             let mut q = n.clone();
             while q != T::zero() {
                 q = q / T::from_usize(prime).unwrap();
-                // q&1 == 1 if q is odd
-                if q.clone() % T::from_usize(2).unwrap() == T::one() {
+                // q%2 == 1 if q is odd
+                if q.clone() % two.clone() == T::one() {
                     p = p * T::from_usize(prime).unwrap();
                 }
             }
@@ -113,7 +108,7 @@ impl<
     }
 
     fn psw_factorial(&self, sieve: &Sieve) -> T {
-        if *self < T::from_usize(20).unwrap() {
+        if *self < T::from_usize(50).unwrap() {
             return self.factorial();
         }
         let first_term = Self::psw_factorial(&(self.clone() / T::from_usize(2).unwrap()), sieve);
@@ -142,8 +137,10 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Instant;
+    use crate::{DoubleFactorial, Factorial};
     use num_bigint::*;
+    use primal_sieve::Sieve;
+    use std::time::Instant;
 
     #[test]
     fn zero_fact_is_one() {
@@ -224,28 +221,17 @@ mod tests {
     #[test]
     fn psw_speed_test() {
         let time_fac = Instant::now();
-        let fac = 100_usize.to_biguint().unwrap().factorial();
+        let fac = 1000_usize.to_biguint().unwrap().factorial();
         let time_fac = time_fac.elapsed().as_micros();
 
-        
-        let sieve = Sieve::new(100);
+        let sieve = Sieve::new(1000);
         let time_psw_fac = Instant::now();
-        let psw_fac = 100_usize.to_biguint().unwrap().psw_factorial(&sieve);
+        let psw_fac = 1000_usize.to_biguint().unwrap().psw_factorial(&sieve);
         let time_psw_fac = time_psw_fac.elapsed().as_micros();
 
         assert_eq!(fac, psw_fac);
-        // println!("{} >=? {}", time_fac, time_psw_fac);
-        // assert!(time_fac >= time_psw_fac);
-    }
-
-    #[bench]
-    fn bench_factorial(b: &mut Bencher) {
-
-    }
-
-    #[bench]
-    fn bench_psw_factorial() {
-
+        println!("{} >=? {}", time_fac, time_psw_fac);
+        assert!(time_fac >= time_psw_fac);
     }
 
     #[test]
