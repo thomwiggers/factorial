@@ -15,7 +15,7 @@ travis-ci = { repository = "thomwiggers/factorial" }
 maintenance = { status = "passively-maintained" }
 
 [dev-dependencies]
-num-bigint = "0.3"
+num-bigint = "0.4"
 
 [dependencies]
 num-traits = "0.2"
