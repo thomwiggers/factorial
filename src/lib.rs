@@ -6,10 +6,6 @@
 //! They are not necessarily the fastest versions: there are prime sieve methods that
 //! compute the factorial in `O(n (log n loglog n)^2)`. Patches are welcome.
 
-#[cfg(test)]
-extern crate num_bigint;
-extern crate num_traits;
-
 use num_traits::{CheckedMul, FromPrimitive, ToPrimitive, Unsigned};
 use primal_sieve::Sieve;
 
@@ -66,6 +62,11 @@ pub trait DoubleFactorial<Target = Self> {
     }
 }
 
+const SMALL_FACTORIAL: [usize; 20] = [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600, 6227020800, 87178291200, 1307674368000, 20922789888000, 355687428096000, 6402373705728000, 121645100408832000];
+
+const SMALL_PRIME_SWING: [usize; 63] = [1, 1, 2, 6, 6, 30, 20, 140, 70, 630, 252, 2772, 924, 12012, 3432, 51480, 12870, 218790, 48620, 923780, 184756, 3879876, 705432, 16224936, 2704156, 67603900, 10400600, 280816200, 40116600, 1163381400, 155117520, 4808643120, 601080390, 19835652870, 2333606220, 81676217700, 9075135300, 335780006100, 35345263800, 1378465288200, 137846528820, 5651707681620, 538257874440, 23145088600920, 2104098963720, 94684453367400, 8233430727600, 386971244197200, 32247603683100, 1580132580471900, 126410606437752, 6446940928325352, 495918532948104, 26283682246249512, 1946939425648112, 107081668410646160, 7648690600760440, 435975364243345080, 30067266499541040, 1773968723472921360, 118264581564861424, 7214139475456546864, 465428353255261088];
+
+
 impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive> Factorial<T>
     for T
 {
@@ -108,11 +109,17 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive
     }
 
     fn psw_factorial(&self, sieve: &Sieve) -> T {
-        if *self < T::from_usize(50).unwrap() {
-            return self.factorial();
+        if *self < T::from_usize(20).unwrap() {
+            // return Self::factorial(&self);
+            return T::from_usize(SMALL_FACTORIAL[self.to_usize().unwrap()]).unwrap();
         }
         let first_term = Self::psw_factorial(&(self.clone() / T::from_usize(2).unwrap()), sieve);
-        first_term.clone() * first_term.clone() * Self::prime_swing(self.clone(), sieve)
+        let swing = if *self < T::from_usize(63).unwrap() {
+            T::from_usize(SMALL_PRIME_SWING[self.to_usize().unwrap()]).unwrap()
+        } else {
+            Self::prime_swing(self.clone(), sieve)
+        };
+        first_term.clone() * first_term.clone() * swing
     }
 }
 
