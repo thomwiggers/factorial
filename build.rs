@@ -42,7 +42,11 @@ fn main() -> std::io::Result<()> {
             factorials.push(fac);
             n += 1;
         }
-        file_content.push_str(&format!("[u128; {}] = {:?};\n", factorials.len(), factorials));
+        file_content.push_str(&format!(
+            "[u128; {}] = {:#?};\n",
+            factorials.len(),
+            factorials
+        ));
 
         let sieve = Sieve::new(1_000);
         file_content.push_str("pub const SMALL_PRIME_SWING: ");
@@ -52,7 +56,11 @@ fn main() -> std::io::Result<()> {
             prime_swings.push(swing);
             n += 1;
         }
-        file_content.push_str(&format!("[u128; {}] = {:?};\n", prime_swings.len(), prime_swings));
+        file_content.push_str(&format!(
+            "[u128; {}] = {:#?};\n",
+            prime_swings.len(),
+            prime_swings
+        ));
 
         let mut file = File::create(path)?;
         file.write_all(file_content.as_bytes())?;
