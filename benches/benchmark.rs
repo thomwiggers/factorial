@@ -1,28 +1,18 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use factorial::Factorial;
 use num_bigint::*;
-use primal_sieve::Sieve;
 
 fn psw_factorial_benchmark(c: &mut Criterion) {
-    let sieve = Sieve::new(32_000);
-    for x in [5_usize, 10, 20, 50, 100, 200, 500, 1000, 2000, 4000, 8000, 16000] {
+    for x in [
+        5_usize, 10, 20, 50, 100, 200, 500, 1000, 2000, 4000, 8000, 16000,
+    ] {
         let id = format!("Psw factorial of {}", x);
         c.bench_function(&id, |b| {
-            b.iter(|| {
-                black_box(x)
-                    .to_biguint()
-                    .unwrap()
-                    .psw_factorial(&sieve)
-            })
+            b.iter(|| black_box(x).to_biguint().unwrap().factorial())
         });
         let id = format!("Naive factorial of {}", x);
         c.bench_function(&id, |b| {
-            b.iter(|| {
-                black_box(x)
-                    .to_biguint()
-                    .unwrap()
-                    .factorial()
-            })
+            b.iter(|| black_box(x).to_biguint().unwrap().naive_factorial())
         });
     }
 }
