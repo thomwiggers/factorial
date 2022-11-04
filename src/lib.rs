@@ -35,23 +35,25 @@ pub trait Factorial<Target = Self> {
             .expect("Overflow computing factorial")
     }
 
-    fn checked_naive_factorial(&self) -> Option<Target>;
-
-    fn naive_factorial(&self) -> Target {
-        self.checked_naive_factorial()
-            .expect("Overflow computing factorial")
-    }
     /// Returns `self!`, i.e. the factorial of `self` using the prime swing algorithm.
     ///
     /// # Examples
     /// ```
     /// use factorial::Factorial;
     /// use primal_sieve::Sieve;
-    /// let number = 10_usize;
-    /// let sieve = Sieve::new(number);
+    /// // The sieve must be equal or greater than the argument of the factorial.
+    /// let sieve = Sieve::new(10_usize);
     /// assert_eq!(10_usize.factorial(), 3628800);
     /// ```
     fn psw_factorial(&self, sieve: &Sieve) -> Option<Target>;
+}
+
+trait PrivateFactorial<Target = Self> {
+    fn prime_swing(&self, sieve: &Sieve) -> Option<Target>;
+
+    fn psw_factorial_with_array(&self) -> Option<Target>;
+
+    fn small_factorial(&self) -> Option<Target>;
 }
 
 /// Unary operator for computing the double factorial of a number
@@ -74,21 +76,64 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive
     #[inline(always)]
     fn checked_factorial(&self) -> Option<T> {
         if self < &T::from_usize(array::SMALL_PRIME_SWING.len()).unwrap() {
-            return psw_factorial_with_array(self);
+            return self.psw_factorial_with_array();
         } else if self < &T::from_usize(800).unwrap() {
-            return small_factorial(self);
+            return self.small_factorial();
         }
         let sieve = Sieve::new(self.to_usize()?);
         self.psw_factorial(&sieve)
     }
 
     #[inline(always)]
-    fn checked_naive_factorial(&self) -> Option<T> {
-        if self < &T::from_usize(array::SMALL_PRIME_SWING.len()).unwrap() {
-            return psw_factorial_with_array(self);
+    fn psw_factorial(&self, sieve: &Sieve) -> Option<T> {
+        if self < &T::from_usize(array::SMALL_PRIME_SWING.len())? {
+            return self.psw_factorial_with_array();
         }
+        let first_term = Self::psw_factorial(&(self.clone() / T::from_usize(2)?), sieve)?;
+        let swing = self.clone().prime_swing(sieve)?;
+        first_term.checked_mul(&first_term)?.checked_mul(&swing)
+    }
+}
+
+impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive>
+    PrivateFactorial<T> for T
+{
+    fn prime_swing(&self, sieve: &Sieve) -> Option<T> {
+        let mut product = T::one();
+        let two = T::from_usize(2)?;
+        for prime in sieve
+            .primes_from(2)
+            .take_while(|x| *x < self.to_usize().unwrap())
+        {
+            let mut p = T::one();
+            let mut q = self.clone();
+            while q != T::zero() {
+                q = q / T::from_usize(prime).unwrap();
+                // q%2 == 1 if q is odd
+                if q.clone() % two.clone() == T::one() {
+                    p = p.checked_mul(&T::from_usize(prime).unwrap())?;
+                }
+            }
+            if p > T::one() {
+                product = product.checked_mul(&p)?;
+            }
+        }
+        Some(product)
+    }
+
+    fn psw_factorial_with_array(&self) -> Option<T> {
+        if self < &T::from_usize(array::SMALL_FACTORIAL.len()).unwrap() {
+            // return Self::factorial(&self);
+            return T::from_u128(array::SMALL_FACTORIAL[self.to_usize().unwrap()]);
+        }
+        let first_term = (self.clone() / T::from_usize(2).unwrap()).psw_factorial_with_array()?;
+        let swing = T::from_u128(array::SMALL_PRIME_SWING[self.to_usize().unwrap()])?;
+        first_term.checked_mul(&first_term)?.checked_mul(&swing)
+    }
+
+    fn small_factorial(&self) -> Option<T> {
         let small_prime_swing_limit = T::from_usize(array::SMALL_PRIME_SWING.len() - 1).unwrap();
-        let mut acc = psw_factorial_with_array(&small_prime_swing_limit)?;
+        let mut acc = small_prime_swing_limit.psw_factorial_with_array()?;
         let mut i = small_prime_swing_limit + T::one();
         while &i <= self {
             acc = acc.checked_mul(&i)?;
@@ -96,71 +141,6 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive
         }
         Some(acc)
     }
-
-    #[inline(always)]
-    fn psw_factorial(&self, sieve: &Sieve) -> Option<T> {
-        if self < &T::from_usize(array::SMALL_PRIME_SWING.len())? {
-            return psw_factorial_with_array(&self);
-        }
-        let first_term = Self::psw_factorial(&(self.clone() / T::from_usize(2)?), sieve)?;
-        let swing = prime_swing(self.clone(), sieve)?;
-        first_term.checked_mul(&first_term)?.checked_mul(&swing)
-    }
-}
-
-#[inline(always)]
-fn prime_swing<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive>(
-    n: T,
-    sieve: &Sieve,
-) -> Option<T> {
-    let mut product = T::one();
-    let two = T::from_usize(2)?;
-    for prime in sieve
-        .primes_from(2)
-        .take_while(|x| *x < n.to_usize().unwrap())
-    {
-        let mut p = T::one();
-        let mut q = n.clone();
-        while q != T::zero() {
-            q = q / T::from_usize(prime).unwrap();
-            // q%2 == 1 if q is odd
-            if q.clone() % two.clone() == T::one() {
-                p = p.checked_mul(&T::from_usize(prime).unwrap())?;
-            }
-        }
-        if p > T::one() {
-            product = product.checked_mul(&p)?;
-        }
-    }
-    Some(product)
-}
-
-#[inline(always)]
-fn psw_factorial_with_array<
-    T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive,
->(
-    n: &T,
-) -> Option<T> {
-    if n < &T::from_usize(array::SMALL_FACTORIAL.len()).unwrap() {
-        // return Self::factorial(&self);
-        return T::from_u128(array::SMALL_FACTORIAL[n.to_usize().unwrap()]);
-    }
-    let first_term = psw_factorial_with_array(&(n.clone() / T::from_usize(2).unwrap()))?;
-    let swing = T::from_u128(array::SMALL_PRIME_SWING[n.to_usize().unwrap()])?;
-    first_term.checked_mul(&first_term)?.checked_mul(&swing)
-}
-
-fn small_factorial<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive>(
-    n: &T,
-) -> Option<T> {
-    let small_prime_swing_limit = T::from_usize(array::SMALL_PRIME_SWING.len() - 1).unwrap();
-    let mut acc = psw_factorial_with_array(&small_prime_swing_limit)?;
-    let mut i = small_prime_swing_limit + T::one();
-    while &i <= n {
-        acc = acc.checked_mul(&i)?;
-        i = i + T::one();
-    }
-    Some(acc)
 }
 
 impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
@@ -212,8 +192,8 @@ mod tests {
     fn one_hundred_fact() {
         let sieve = Sieve::new(100);
         assert_eq!(
-            100.to_biguint().unwrap().checked_naive_factorial(),
-            100.to_biguint().unwrap().psw_factorial(&sieve)
+            100.to_biguint().unwrap().factorial(),
+            100.to_biguint().unwrap().psw_factorial(&sieve).unwrap()
         );
     }
 

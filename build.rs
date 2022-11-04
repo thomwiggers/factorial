@@ -17,7 +17,7 @@ fn prime_swing(n: u128, sieve: &Sieve) -> Option<u128> {
         let mut p = 1u128;
         let mut q = n;
         while q != 0 {
-            q = q / prime as u128;
+            q /= prime as u128;
             // q%2 == 1 if q is odd
             if q % 2u128 == 1 {
                 p = p.checked_mul(prime as u128)?;
@@ -32,7 +32,7 @@ fn prime_swing(n: u128, sieve: &Sieve) -> Option<u128> {
 
 fn main() -> std::io::Result<()> {
     let path = Path::new("./src/array.rs");
-    println!("It is executed");
+    println!("Generating {}.", path.display());
     if !path.exists() {
         let mut file_content = String::new();
         file_content.push_str("pub const SMALL_FACTORIAL: ");
