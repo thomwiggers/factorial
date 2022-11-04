@@ -77,7 +77,7 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive
     fn checked_factorial(&self) -> Option<T> {
         if self < &T::from_usize(array::SMALL_PRIME_SWING.len()).unwrap() {
             return self.psw_factorial_with_array();
-        } else if self < &T::from_usize(800).unwrap() {
+        } else if self < &T::from_usize(750).unwrap() {
             return self.small_factorial();
         }
         let sieve = Sieve::new(self.to_usize()?);

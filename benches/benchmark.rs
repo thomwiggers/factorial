@@ -25,12 +25,7 @@ fn bench_factorial(c: &mut Criterion) {
     group.warm_up_time(Duration::new(1, 0));
     group.measurement_time(Duration::new(2, 0));
     group.noise_threshold(0.1);
-    for x in [1usize, 2, 7, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000, 25000, 50000] {
-        if x == 10000 {
-            group.measurement_time(Duration::new(10, 0));
-            group.sample_size(30);
-            group.nresamples(1000);
-        }
+    for x in [1usize, 2, 7, 10, 25, 50, 75, 100, 120, 150, 200, 250, 500, 600, 690, 750, 1000] {
         group.bench_with_input(BenchmarkId::new("Naive", x), &x, |b, x| {
             b.iter(|| naive_factorial(&BigUint::from(*x)))
         });
@@ -38,6 +33,27 @@ fn bench_factorial(c: &mut Criterion) {
             b.iter(|| BigUint::from(*x).factorial())
         });
     }
+    group.measurement_time(Duration::new(10, 0));
+    group.sample_size(30);
+    for x in [2500usize, 5000, 7500, 10000, 25000, 50000] {
+        group.bench_with_input(BenchmarkId::new("Naive", x), &x, |b, x| {
+            b.iter(|| naive_factorial(&BigUint::from(*x)))
+        });
+        group.bench_with_input(BenchmarkId::new("Prime swing", x), &x, |b, x| {
+            b.iter(|| BigUint::from(*x).factorial())
+        });
+    }
+    group.measurement_time(Duration::new(69, 0));
+    group.sample_size(10);
+    for x in [75000usize, 100000] {
+        group.bench_with_input(BenchmarkId::new("Naive", x), &x, |b, x| {
+            b.iter(|| naive_factorial(&BigUint::from(*x)))
+        });
+        group.bench_with_input(BenchmarkId::new("Prime swing", x), &x, |b, x| {
+            b.iter(|| BigUint::from(*x).factorial())
+        });
+    }
+
     group.finish()
 }
 
