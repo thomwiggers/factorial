@@ -1,4 +1,6 @@
-use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId};
+use std::time::Duration;
+
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, PlotConfiguration, AxisScale};
 use factorial::Factorial;
 use num_bigint::*;
 
@@ -18,14 +20,25 @@ fn naive_factorial(n: &BigUint) -> BigUint {
 
 fn bench_factorial(c: &mut Criterion) {
     let mut group = c.benchmark_group("Factorial");
-    for x in [
-        5_usize, 10, 20, 50, 100, 200, 500, 1000, 2000, 4000, 8000, 16000,
-    ] {
-        group.bench_with_input(BenchmarkId::new("Naive", x), &x, 
-            |b, x| b.iter(|| naive_factorial(&BigUint::from(*x))));
-        group.bench_with_input(BenchmarkId::new("Prime swing", x), &x, 
-            |b, x| b.iter(|| BigUint::from(*x).factorial()));
+    let plot_config = PlotConfiguration::default().summary_scale(AxisScale::Logarithmic);
+    group.plot_config(plot_config);
+    group.warm_up_time(Duration::new(1, 0));
+    group.measurement_time(Duration::new(2, 0));
+    group.noise_threshold(0.1);
+    for x in [1usize, 2, 7, 10, 25, 50, 75, 100, 250, 500, 750, 1000, 2500, 5000, 7500, 10000, 25000, 50000] {
+        if x == 10000 {
+            group.measurement_time(Duration::new(10, 0));
+            group.sample_size(30);
+            group.nresamples(1000);
+        }
+        group.bench_with_input(BenchmarkId::new("Naive", x), &x, |b, x| {
+            b.iter(|| naive_factorial(&BigUint::from(*x)))
+        });
+        group.bench_with_input(BenchmarkId::new("Prime swing", x), &x, |b, x| {
+            b.iter(|| BigUint::from(*x).factorial())
+        });
     }
+    group.finish()
 }
 
 criterion_group!(benches, bench_factorial);
