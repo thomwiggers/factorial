@@ -7,7 +7,7 @@ repository = "https://github.com/thomwiggers/factorial/"
 readme = "README.md"
 keywords = ["mathematics", "maths", "factorial", "combinatorics"]
 categories = ["science", "algorithms"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 
 [badges]
