@@ -6,11 +6,8 @@
 //! They are not necessarily the fastest versions: there are prime sieve methods that
 //! compute the factorial in `O(n (log n loglog n)^2)`. Patches are welcome.
 
-#[cfg(test)]
-extern crate num_bigint;
-extern crate num_traits;
-
-use num_traits::{CheckedMul, Unsigned};
+use num_traits::{CheckedMul, FromPrimitive, ToPrimitive, Unsigned};
+use primal_sieve::Sieve;
 
 /// Unary operator for computing the factorial of a number
 ///
@@ -37,6 +34,26 @@ pub trait Factorial<Target = Self> {
         self.checked_factorial()
             .expect("Overflow computing factorial")
     }
+
+    /// Returns `self!`, i.e. the factorial of `self` using the prime swing algorithm.
+    ///
+    /// # Examples
+    /// ```
+    /// use factorial::Factorial;
+    /// use primal_sieve::Sieve;
+    /// // The sieve must be equal or greater than the argument of the factorial.
+    /// let sieve = Sieve::new(10_usize);
+    /// assert_eq!(10_usize.factorial(), 3628800);
+    /// ```
+    fn psw_factorial(&self, sieve: &Sieve) -> Option<Target>;
+}
+
+trait PrivateFactorial<Target = Self> {
+    fn prime_swing(&self, sieve: &Sieve) -> Option<Target>;
+
+    fn psw_factorial_with_array(&self) -> Option<Target>;
+
+    fn small_factorial(&self) -> Option<Target>;
 }
 
 /// Unary operator for computing the double factorial of a number
@@ -51,18 +68,76 @@ pub trait DoubleFactorial<Target = Self> {
     }
 }
 
-impl<T: PartialOrd + Unsigned + CheckedMul> Factorial<T> for T {
+mod array;
+
+impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive> Factorial<T>
+    for T
+{
     #[inline(always)]
     fn checked_factorial(&self) -> Option<T> {
-        let mut acc = T::one();
-        let mut i = T::one() + T::one();
-        while i <= *self {
-            if let Some(acc_i) = acc.checked_mul(&i) {
-                acc = acc_i;
-                i = i + T::one();
-            } else {
-                return None;
+        if self < &T::from_usize(array::SMALL_PRIME_SWING.len()).unwrap() {
+            return self.psw_factorial_with_array();
+        } else if self < &T::from_usize(1200).unwrap() {
+            return self.small_factorial();
+        }
+        let sieve = Sieve::new(self.to_usize()?);
+        self.psw_factorial(&sieve)
+    }
+
+    #[inline(always)]
+    fn psw_factorial(&self, sieve: &Sieve) -> Option<T> {
+        if self < &T::from_usize(array::SMALL_PRIME_SWING.len())? {
+            return self.psw_factorial_with_array();
+        }
+        let first_term = Self::psw_factorial(&(self.clone() / T::from_usize(2)?), sieve)?;
+        let swing = self.clone().prime_swing(sieve)?;
+        first_term.checked_mul(&first_term)?.checked_mul(&swing)
+    }
+}
+
+impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive>
+    PrivateFactorial<T> for T
+{
+    fn prime_swing(&self, sieve: &Sieve) -> Option<T> {
+        let mut product = T::one();
+        let two = T::from_usize(2)?;
+        for prime in sieve
+            .primes_from(2)
+            .take_while(|x| *x < self.to_usize().unwrap())
+        {
+            let mut p = T::one();
+            let mut q = self.clone();
+            while q != T::zero() {
+                q = q / T::from_usize(prime).unwrap();
+                // q%2 == 1 if q is odd
+                if q.clone() % two.clone() == T::one() {
+                    p = p.checked_mul(&T::from_usize(prime).unwrap())?;
+                }
             }
+            if p > T::one() {
+                product = product.checked_mul(&p)?;
+            }
+        }
+        Some(product)
+    }
+
+    fn psw_factorial_with_array(&self) -> Option<T> {
+        if self < &T::from_usize(array::SMALL_FACTORIAL.len()).unwrap() {
+            // return Self::factorial(&self);
+            return T::from_u128(array::SMALL_FACTORIAL[self.to_usize().unwrap()]);
+        }
+        let first_term = (self.clone() / T::from_usize(2).unwrap()).psw_factorial_with_array()?;
+        let swing = T::from_u128(array::SMALL_PRIME_SWING[self.to_usize().unwrap()])?;
+        first_term.checked_mul(&first_term)?.checked_mul(&swing)
+    }
+
+    fn small_factorial(&self) -> Option<T> {
+        let small_prime_swing_limit = T::from_usize(array::SMALL_PRIME_SWING.len() - 1).unwrap();
+        let mut acc = small_prime_swing_limit.psw_factorial_with_array()?;
+        let mut i = small_prime_swing_limit + T::one();
+        while &i <= self {
+            acc = acc.checked_mul(&i)?;
+            i = i + T::one();
         }
         Some(acc)
     }
@@ -89,8 +164,9 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{DoubleFactorial, Factorial};
     use num_bigint::*;
+    use primal_sieve::Sieve;
 
     #[test]
     fn zero_fact_is_one() {
@@ -110,6 +186,15 @@ mod tests {
     #[test]
     fn ten_fact() {
         assert_eq!(10u32.factorial(), 3_628_800);
+    }
+
+    #[test]
+    fn one_hundred_fact() {
+        let sieve = Sieve::new(100);
+        assert_eq!(
+            100.to_biguint().unwrap().factorial(),
+            100.to_biguint().unwrap().psw_factorial(&sieve).unwrap()
+        );
     }
 
     #[test]
