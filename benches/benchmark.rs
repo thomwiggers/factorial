@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, PlotConfiguration, AxisScale};
+use criterion::{
+    criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion, PlotConfiguration,
+};
 use factorial::Factorial;
 use num_bigint::*;
 
@@ -25,7 +27,9 @@ fn bench_factorial(c: &mut Criterion) {
     group.warm_up_time(Duration::new(1, 0));
     group.measurement_time(Duration::new(2, 0));
     group.noise_threshold(0.1);
-    for x in [1usize, 2, 7, 10, 25, 50, 75, 100, 120, 150, 200, 250, 500, 600, 690, 750, 1000] {
+    for x in [
+        1usize, 2, 7, 10, 25, 50, 75, 100, 120, 150, 200, 250, 500, 600, 690, 750, 1000,
+    ] {
         group.bench_with_input(BenchmarkId::new("Naive", x), &x, |b, x| {
             b.iter(|| naive_factorial(&BigUint::from(*x)))
         });
