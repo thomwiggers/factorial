@@ -1,10 +1,4 @@
-//! # Compute the factorial
-//!
-//! This crate provides some convenient and safe methods to compute the
-//! factorial and related functions the most naive way possible.
-//!
-//! They are not necessarily the fastest versions: there are prime sieve methods that
-//! compute the factorial in `O(n (log n loglog n)^2)`. Patches are welcome.
+#![doc = include_str!("../README.md")]
 
 use num_traits::{CheckedMul, FromPrimitive, ToPrimitive, Unsigned};
 use primal_sieve::Sieve;
