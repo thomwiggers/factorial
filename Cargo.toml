@@ -20,7 +20,7 @@ primal-sieve = "0.3.5"
 
 [dev-dependencies]
 num-bigint = "0.4"
-criterion = { version = "0.4", features = ["html_reports"] }
+criterion = { version = "0.5", features = ["html_reports"] }
 
 [build-dependencies]
 primal-sieve = "0.3.5"
