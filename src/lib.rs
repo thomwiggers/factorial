@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-use array::SMALL_PRIME_SWING;
 use num_traits::{CheckedMul, FromPrimitive, ToPrimitive, Unsigned};
 use primal_sieve::Sieve;
 use std::ops::Shl;
@@ -90,7 +89,7 @@ impl<
 {
     #[inline(always)]
     fn checked_factorial(&self) -> Option<T> {
-        if self < &T::from_usize(array::SMALL_PRIME_SWING.len()).unwrap() {
+        if self < &T::from_usize(array::SMALL_ODD_SWING.len()).unwrap() {
             return self.psw_factorial_with_array();
         }
         let sieve = Sieve::new(self.to_usize()?);
@@ -99,7 +98,7 @@ impl<
 
     #[inline(always)]
     fn psw_factorial(&self, sieve: &Sieve) -> Option<T> {
-        if self < &T::from_usize(array::SMALL_PRIME_SWING.len())? {
+        if self < &T::from_usize(array::SMALL_ODD_SWING.len())? {
             return self.psw_factorial_with_array();
         }
         let bytes = self.to_u32()? - self.to_u32()?.count_ones() - 1;
@@ -120,8 +119,8 @@ impl<
 {
     fn prime_swing(&self, sieve: &Sieve) -> Option<T> {
         let n = self.to_usize()?;
-        if n < SMALL_PRIME_SWING.len() {
-            return T::from_u128(SMALL_PRIME_SWING[n]);
+        if n < array::SMALL_ODD_SWING.len() {
+            return T::from_u128(array::SMALL_ODD_SWING[n]);
         }
         let sqrt = ((n as f64).sqrt().floor()) as usize;
         let mut product = T::one();
@@ -172,7 +171,7 @@ impl<
         }
         let tmp = (self.clone() / two).odd_factorial_array()?;
         let tmp_sq = tmp.checked_mul(&tmp)?;
-        tmp_sq.checked_mul(&T::from_u128(SMALL_PRIME_SWING[self.to_usize()?])?)
+        tmp_sq.checked_mul(&T::from_u128(array::SMALL_ODD_SWING[self.to_usize()?])?)
     }
 
     fn psw_factorial_with_array(&self) -> Option<T> {

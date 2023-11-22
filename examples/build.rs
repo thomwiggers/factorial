@@ -81,7 +81,7 @@ fn main() -> std::io::Result<()> {
     ));
 
     let sieve = Sieve::new(1_000);
-    file_content.push_str("pub const SMALL_PRIME_SWING: ");
+    file_content.push_str("pub const SMALL_ODD_SWING: ");
     let mut n = 0u128;
     let mut prime_swings = vec![];
     while let Some(swing) = prime_swing(n, &sieve) {
