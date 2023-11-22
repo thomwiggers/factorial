@@ -249,4 +249,32 @@ mod tests {
     fn too_large_safe_double_fact() {
         assert_eq!(100u32.checked_double_factorial(), None)
     }
+
+    #[test]
+    fn factorials_range() {
+        let k = 2u128;
+        for n in k..=34u128 {
+            let d = n - k;
+            let p = n.factorial() / d.factorial();
+            let mut p_prime = 1u128;
+            for i in 0..k {
+                p_prime *= n - i;
+            }
+            assert_eq!(p_prime, p, "mismatch for iteration {n}");
+        }
+    }
+
+    #[test]
+    fn factorials_range_bigint() {
+        let k = 2u128;
+        for n in k..=1220u128 {
+            let d = n - k;
+            let p = n.to_biguint().unwrap().factorial() / d.to_biguint().unwrap().factorial();
+            let mut p_prime = 1u128.to_biguint().unwrap();
+            for i in 0..k {
+                p_prime *= n.to_biguint().unwrap() - i;
+            }
+            assert_eq!(p_prime, p, "mismatch for iteration {n}");
+        }
+    }
 }
