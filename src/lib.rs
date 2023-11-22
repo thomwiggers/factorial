@@ -325,4 +325,17 @@ mod tests {
             assert_eq!(p_prime, p, "mismatch for iteration {n}");
         }
     }
+
+    #[test]
+    fn psw_factorials_range_bigint() {
+        let sieve = Sieve::new(2000);
+        for n in 2..=2000u128 {
+            let p = n.to_biguint().unwrap().psw_factorial(&sieve).unwrap();
+            let mut p_prime = 1u128.to_biguint().unwrap();
+            for i in 2..=n {
+                p_prime *= i.to_biguint().unwrap();
+            }
+            assert_eq!(p_prime, p, "mismatch for iteration {n}");
+        }
+    }
 }
