@@ -33,37 +33,35 @@ fn prime_swing(n: u128, sieve: &Sieve) -> Option<u128> {
 fn main() -> std::io::Result<()> {
     let path = Path::new("./src/array.rs");
     println!("Generating {}.", path.display());
-    if !path.exists() {
-        let mut file_content = String::new();
-        file_content.push_str("pub const SMALL_FACTORIAL: ");
-        let mut n = 0u128;
-        let mut factorials = vec![];
-        while let Some(fac) = checked_naive_factorial(n) {
-            factorials.push(fac);
-            n += 1;
-        }
-        file_content.push_str(&format!(
-            "[u128; {}] = {:#?};\n",
-            factorials.len(),
-            factorials
-        ));
-
-        let sieve = Sieve::new(1_000);
-        file_content.push_str("pub const SMALL_PRIME_SWING: ");
-        let mut n = 0u128;
-        let mut prime_swings = vec![];
-        while let Some(swing) = prime_swing(n, &sieve) {
-            prime_swings.push(swing);
-            n += 1;
-        }
-        file_content.push_str(&format!(
-            "[u128; {}] = {:#?};\n",
-            prime_swings.len(),
-            prime_swings
-        ));
-
-        let mut file = File::create(path)?;
-        file.write_all(file_content.as_bytes())?;
+    let mut file_content = String::new();
+    file_content.push_str("pub const SMALL_FACTORIAL: ");
+    let mut n = 0u128;
+    let mut factorials = vec![];
+    while let Some(fac) = checked_naive_factorial(n) {
+        factorials.push(fac);
+        n += 1;
     }
+    file_content.push_str(&format!(
+        "[u128; {}] = {:#?};\n",
+        factorials.len(),
+        factorials
+    ));
+
+    let sieve = Sieve::new(1_000);
+    file_content.push_str("pub const SMALL_PRIME_SWING: ");
+    let mut n = 0u128;
+    let mut prime_swings = vec![];
+    while let Some(swing) = prime_swing(n, &sieve) {
+        prime_swings.push(swing);
+        n += 1;
+    }
+    file_content.push_str(&format!(
+        "[u128; {}] = {:#?};\n",
+        prime_swings.len(),
+        prime_swings
+    ));
+
+    let mut file = File::create(path)?;
+    file.write_all(file_content.as_bytes())?;
     Ok(())
 }
