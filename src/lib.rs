@@ -73,7 +73,7 @@ fn prime_range(
     upper_boud: usize,
 ) -> impl Iterator<Item = usize> + '_ {
     sieve
-        .primes_from(lower_bound as usize)
+        .primes_from(lower_bound)
         .take_while(move |m| *m <= upper_boud)
 }
 
