@@ -2,6 +2,7 @@
 
 use num_traits::{CheckedMul, FromPrimitive, ToPrimitive, Unsigned};
 use primal_sieve::Sieve;
+use std::ops::Shl;
 
 /// Unary operator for computing the factorial of a number
 ///
@@ -45,9 +46,11 @@ pub trait Factorial<Target = Self> {
 trait PrivateFactorial<Target = Self> {
     fn prime_swing(&self, sieve: &Sieve) -> Option<Target>;
 
-    fn psw_factorial_with_array(&self) -> Option<Target>;
+    fn odd_factorial(&self, sieve: &Sieve) -> Option<Target>;
 
-    fn small_factorial(&self) -> Option<Target>;
+    fn odd_factorial_array(&self) -> Option<Target>;
+
+    fn psw_factorial_with_array(&self) -> Option<Target>;
 }
 
 /// Unary operator for computing the double factorial of a number
@@ -64,15 +67,30 @@ pub trait DoubleFactorial<Target = Self> {
 
 mod array;
 
-impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive> Factorial<T>
-    for T
+fn prime_range(
+    sieve: &Sieve,
+    lower_bound: usize,
+    upper_boud: usize,
+) -> impl Iterator<Item = usize> + '_ {
+    sieve
+        .primes_from(lower_bound)
+        .take_while(move |m| *m <= upper_boud)
+}
+
+impl<
+        T: PartialOrd
+            + Unsigned
+            + CheckedMul
+            + Clone
+            + FromPrimitive
+            + ToPrimitive
+            + Shl<u32, Output = T>,
+    > Factorial<T> for T
 {
     #[inline(always)]
     fn checked_factorial(&self) -> Option<T> {
-        if self < &T::from_usize(array::SMALL_PRIME_SWING.len()).unwrap() {
+        if self < &T::from_usize(array::SMALL_ODD_SWING.len()).unwrap() {
             return self.psw_factorial_with_array();
-        } else if self < &T::from_usize(1200).unwrap() {
-            return self.small_factorial();
         }
         let sieve = Sieve::new(self.to_usize()?);
         self.psw_factorial(&sieve)
@@ -80,60 +98,89 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive
 
     #[inline(always)]
     fn psw_factorial(&self, sieve: &Sieve) -> Option<T> {
-        if self < &T::from_usize(array::SMALL_PRIME_SWING.len())? {
+        if self < &T::from_usize(array::SMALL_ODD_SWING.len())? {
             return self.psw_factorial_with_array();
         }
-        let first_term = Self::psw_factorial(&(self.clone() / T::from_usize(2)?), sieve)?;
-        let swing = self.clone().prime_swing(sieve)?;
-        first_term.checked_mul(&first_term)?.checked_mul(&swing)
+        let bytes = self.to_u32()? - self.to_u32()?.count_ones() - 1;
+        let res = self.odd_factorial(sieve)?;
+        res.checked_mul(&T::from_u8(2)?.shl(bytes))
     }
 }
 
-impl<T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive>
-    PrivateFactorial<T> for T
+impl<
+        T: PartialOrd
+            + Unsigned
+            + CheckedMul
+            + Clone
+            + FromPrimitive
+            + ToPrimitive
+            + Shl<u32, Output = T>,
+    > PrivateFactorial<T> for T
 {
     fn prime_swing(&self, sieve: &Sieve) -> Option<T> {
+        let n = self.to_usize()?;
+        if n < array::SMALL_ODD_SWING.len() {
+            return T::from_u128(array::SMALL_ODD_SWING[n]);
+        }
+        let sqrt = ((n as f64).sqrt().floor()) as usize;
         let mut product = T::one();
-        let two = T::from_usize(2)?;
-        for prime in sieve
-            .primes_from(2)
-            .take_while(|x| *x < self.to_usize().unwrap())
-        {
-            let mut p = T::one();
-            let mut q = self.clone();
-            while q != T::zero() {
-                q = q / T::from_usize(prime).unwrap();
-                // q%2 == 1 if q is odd
-                if q.clone() % two.clone() == T::one() {
-                    p = p.checked_mul(&T::from_usize(prime).unwrap())?;
+
+        for prime in prime_range(sieve, n / 2 + 1, n) {
+            product = product.checked_mul(&T::from_usize(prime)?)?;
+        }
+
+        for prime in prime_range(sieve, sqrt + 1, n / 3) {
+            if (n / prime) & 1 == 1 {
+                product = product.checked_mul(&T::from_usize(prime)?)?;
+            }
+        }
+
+        for prime in prime_range(sieve, 3, sqrt) {
+            let mut p = 1;
+            let mut q = n;
+            loop {
+                q /= prime;
+                if q == 0 {
+                    break;
+                }
+                if q & 1 == 1 {
+                    p *= prime;
                 }
             }
-            if p > T::one() {
-                product = product.checked_mul(&p)?;
+            if p > 1 {
+                product = product.checked_mul(&T::from_usize(p)?)?;
             }
         }
         Some(product)
     }
 
-    fn psw_factorial_with_array(&self) -> Option<T> {
-        if self < &T::from_usize(array::SMALL_FACTORIAL.len()).unwrap() {
-            // return Self::factorial(&self);
-            return T::from_u128(array::SMALL_FACTORIAL[self.to_usize().unwrap()]);
+    fn odd_factorial(&self, sieve: &Sieve) -> Option<T> {
+        let two = T::from_u8(2).unwrap();
+        if self < &(two) {
+            return Some(Self::one());
         }
-        let first_term = (self.clone() / T::from_usize(2).unwrap()).psw_factorial_with_array()?;
-        let swing = T::from_u128(array::SMALL_PRIME_SWING[self.to_usize().unwrap()])?;
-        first_term.checked_mul(&first_term)?.checked_mul(&swing)
+        let tmp = (self.clone() / two).odd_factorial(sieve)?;
+        let tmp_sq = tmp.checked_mul(&tmp)?;
+        tmp_sq.checked_mul(&self.prime_swing(sieve)?)
     }
 
-    fn small_factorial(&self) -> Option<T> {
-        let small_prime_swing_limit = T::from_usize(array::SMALL_PRIME_SWING.len() - 1).unwrap();
-        let mut acc = small_prime_swing_limit.psw_factorial_with_array()?;
-        let mut i = small_prime_swing_limit + T::one();
-        while &i <= self {
-            acc = acc.checked_mul(&i)?;
-            i = i + T::one();
+    fn odd_factorial_array(&self) -> Option<T> {
+        let two = T::from_u8(2).unwrap();
+        if self < &(two) {
+            return Some(Self::one());
         }
-        Some(acc)
+        let tmp = (self.clone() / two).odd_factorial_array()?;
+        let tmp_sq = tmp.checked_mul(&tmp)?;
+        tmp_sq.checked_mul(&T::from_u128(array::SMALL_ODD_SWING[self.to_usize()?])?)
+    }
+
+    fn psw_factorial_with_array(&self) -> Option<T> {
+        if self < &T::from_usize(array::SMALL_FACTORIAL.len()).unwrap() {
+            return T::from_u128(array::SMALL_FACTORIAL[self.to_usize().unwrap()]);
+        }
+        let bytes = self.to_u32()? - self.to_u32()?.count_ones() - 1;
+        let res = self.odd_factorial_array()?;
+        res.checked_mul(&T::from_u8(2)?.shl(bytes))
     }
 }
 
@@ -252,29 +299,38 @@ mod tests {
 
     #[test]
     fn factorials_range() {
-        let k = 2u128;
-        for n in k..=34u128 {
-            let d = n - k;
-            let p = n.factorial() / d.factorial();
+        for n in 2..=34 {
+            let p = n.factorial();
             let mut p_prime = 1u128;
-            for i in 0..k {
-                p_prime *= n - i;
+            for i in 2..=n {
+                p_prime *= i;
             }
             assert_eq!(p_prime, p, "mismatch for iteration {n}");
         }
     }
 
     #[test]
-    fn factorials_range_bigint() {
-        let k = 2u128;
-        for n in k..=1220u128 {
-            let d = n - k;
-            let p = n.to_biguint().unwrap().factorial() / d.to_biguint().unwrap().factorial();
+    fn psw_factorials_range_bigint() {
+        let sieve = Sieve::new(2000);
+        for n in 2..=2000u128 {
+            let p = n.to_biguint().unwrap().psw_factorial(&sieve).unwrap();
             let mut p_prime = 1u128.to_biguint().unwrap();
-            for i in 0..k {
-                p_prime *= n.to_biguint().unwrap() - i;
+            for i in 2..=n {
+                p_prime *= i.to_biguint().unwrap();
             }
             assert_eq!(p_prime, p, "mismatch for iteration {n}");
         }
+    }
+
+    #[test]
+    fn crazy_big_factorial() {
+        let sieve = Sieve::new(8000);
+        let n = 8000;
+        let p = n.to_biguint().unwrap().psw_factorial(&sieve).unwrap();
+        let mut p_prime = 1u128.to_biguint().unwrap();
+        for i in 2..=n {
+            p_prime *= i.to_biguint().unwrap();
+        }
+        assert_eq!(p_prime, p, "mismatch for iteration {n}");
     }
 }

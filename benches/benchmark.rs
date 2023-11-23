@@ -13,7 +13,7 @@ use num_bigint::*;
 fn naive_factorial(n: &BigUint) -> BigUint {
     let mut acc = BigUint::from(1_usize);
     let mut i = BigUint::from(2_usize);
-    while &i <= &n {
+    while &i <= n {
         acc *= i.clone();
         i += BigUint::from(1_usize);
     }
