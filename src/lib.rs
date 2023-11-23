@@ -299,27 +299,11 @@ mod tests {
 
     #[test]
     fn factorials_range() {
-        let k = 2u128;
-        for n in k..=34u128 {
-            let d = n - k;
-            let p = n.factorial() / d.factorial();
+        for n in 2..=34 {
+            let p = n.factorial();
             let mut p_prime = 1u128;
-            for i in 0..k {
-                p_prime *= n - i;
-            }
-            assert_eq!(p_prime, p, "mismatch for iteration {n}");
-        }
-    }
-
-    #[test]
-    fn factorials_range_bigint() {
-        let k = 2u128;
-        for n in k..=1220u128 {
-            let d = n - k;
-            let p = n.to_biguint().unwrap().factorial() / d.to_biguint().unwrap().factorial();
-            let mut p_prime = 1u128.to_biguint().unwrap();
-            for i in 0..k {
-                p_prime *= n.to_biguint().unwrap() - i;
+            for i in 2..=n {
+                p_prime *= i;
             }
             assert_eq!(p_prime, p, "mismatch for iteration {n}");
         }
@@ -336,5 +320,17 @@ mod tests {
             }
             assert_eq!(p_prime, p, "mismatch for iteration {n}");
         }
+    }
+
+    #[test]
+    fn crazy_big_factorial() {
+        let sieve = Sieve::new(8000);
+        let n = 8000;
+        let p = n.to_biguint().unwrap().psw_factorial(&sieve).unwrap();
+        let mut p_prime = 1u128.to_biguint().unwrap();
+        for i in 2..=n {
+            p_prime *= i.to_biguint().unwrap();
+        }
+        assert_eq!(p_prime, p, "mismatch for iteration {n}");
     }
 }
