@@ -1,6 +1,6 @@
 [package]
 name = "factorial"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Thom Wiggers <thom@thomwiggers.nl>"]
 description = "Convenient methods to compute the factorial, optionally checked."
 repository = "https://github.com/thomwiggers/factorial/"
@@ -16,14 +16,11 @@ maintenance = { status = "passively-maintained" }
 
 [dependencies]
 num-traits = "0.2"
-primal-sieve = "0.3.5"
+primal-sieve = "0.3.6"
 
 [dev-dependencies]
 num-bigint = "0.4"
 criterion = { version = "0.5", features = ["html_reports"] }
-
-[build-dependencies]
-primal-sieve = "0.3.5"
 
 [[bench]]
 name = "benchmark"

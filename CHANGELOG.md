@@ -1,4 +1,9 @@
-== 0.3.0 ==
+== 0.4.0 ==
+
+* Fixed a bug (#16) in the implementation which meant that Factorials 37!, 1200!, and possibly others were not computed correctly.
+  * Thanks to @marcantoinem for stepping up with the bugfix in (#17)
+
+== 0.3.0 (YANKED) ==
 
 * Implement Prime Swing algorithm, which should massively improve performance, especially for larger factorials. (#9)
   Thanks a lot @marcantoinem!
