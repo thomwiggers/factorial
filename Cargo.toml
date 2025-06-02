@@ -20,7 +20,7 @@ primal-sieve = "0.3.6"
 
 [dev-dependencies]
 num-bigint = "0.4"
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.6", features = ["html_reports"] }
 
 [[bench]]
 name = "benchmark"
