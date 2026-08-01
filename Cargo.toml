@@ -19,7 +19,7 @@ num-traits = "0.2"
 primal-sieve = "0.3.6"
 
 [dev-dependencies]
-num-bigint = "0.4"
+num-bigint = "0.5"
 criterion = { version = "0.8", features = ["html_reports"] }
 
 [[bench]]
