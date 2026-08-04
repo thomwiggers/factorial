@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use criterion::{
-    criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion, PlotConfiguration,
+    AxisScale, BenchmarkId, Criterion, PlotConfiguration, criterion_group, criterion_main,
 };
 use factorial::Factorial;
 use num_bigint::*;
