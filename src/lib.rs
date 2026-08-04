@@ -192,12 +192,8 @@ impl<T: PartialOrd + Unsigned + CheckedMul + Copy> DoubleFactorial<T> for T {
         let mut acc = one;
         let mut i = if *self % two == T::zero() { two } else { one };
         while i <= *self {
-            if let Some(acc_i) = acc.checked_mul(&i) {
-                acc = acc_i;
-                i = i + two;
-            } else {
-                return None;
-            }
+            acc = acc.checked_mul(&i)?;
+            i = i + two;
         }
         Some(acc)
     }
