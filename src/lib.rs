@@ -78,14 +78,8 @@ fn prime_range(
 }
 
 impl<
-        T: PartialOrd
-            + Unsigned
-            + CheckedMul
-            + Clone
-            + FromPrimitive
-            + ToPrimitive
-            + Shl<u32, Output = T>,
-    > Factorial<T> for T
+    T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive + Shl<u32, Output = T>,
+> Factorial<T> for T
 {
     #[inline(always)]
     fn checked_factorial(&self) -> Option<T> {
@@ -108,14 +102,8 @@ impl<
 }
 
 impl<
-        T: PartialOrd
-            + Unsigned
-            + CheckedMul
-            + Clone
-            + FromPrimitive
-            + ToPrimitive
-            + Shl<u32, Output = T>,
-    > PrivateFactorial<T> for T
+    T: PartialOrd + Unsigned + CheckedMul + Clone + FromPrimitive + ToPrimitive + Shl<u32, Output = T>,
+> PrivateFactorial<T> for T
 {
     fn prime_swing(&self, sieve: &Sieve) -> Option<T> {
         let n = self.to_usize()?;
