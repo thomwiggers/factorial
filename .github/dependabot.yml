@@ -7,3 +7,15 @@ updates:
     rebase-strategy: "auto"
     reviewers:
       - "thomwiggers"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    rebase-strategy: "auto"
+    reviewers:
+      - "thomwiggers"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
